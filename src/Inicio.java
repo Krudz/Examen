@@ -1,5 +1,7 @@
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
@@ -18,22 +20,14 @@ public class Inicio {
 
 	public static void main(String[] args) throws ClassNotFoundException, SQLException, IOException {
 				
+		// ------------------------Archivos
+		String ruta = "C:\\Users\\Alumno-Tarde\\Desktop\\examenArchivos\\texto.txt";
+		//----------------------------------
+		
 		
 		Class.forName("org.sqlite.JDBC");
 		
 		String url = "jdbc:sqlite:C:\\Users\\Alumno-Tarde\\Desktop\\Examen\\examen";
-		
-		//Archivos----------------------------------------------------------------------------------------//
-		String ruta = "C:\\Users\\Alumno-Tarde\\Desktop\\examenArchivos\\texto.txt";
-		File archivo = new File("C:\\Users\\Alumno-Tarde\\Desktop\\examenArchivos\\texto.txt");
-		FileWriter fw = new FileWriter(archivo);
-		BufferedWriter escritura = new BufferedWriter(fw);
-		
-		
-		
-		
-		//-----------------------------------------------------------------------------------------------//
-		
 		
 		ArrayList<Jugador> jugadores = new ArrayList<>();
 		int ID =0;
@@ -52,7 +46,8 @@ public class Inicio {
 						+ "\n 1 - Añadir"
 						+ "\n 2 - Listar"
 						+ "\n 3 - Eliminar"
-						+ "\n 4 - Cerrar");
+						+ "\n 4 - Cerrar"
+						+ "\n 5 - Leer de archivo a base de datos");
 				
 				opcion = Integer.parseInt(mensaje);
 				
@@ -61,7 +56,7 @@ public class Inicio {
 					sennal = false;
 					
 				}
-				if(opcion <= 0 || opcion > 4) {
+				if(opcion <= 0 || opcion > 5) {
 					JOptionPane.showMessageDialog(null, "Por favor ingresa un numero del 1 al 4");
 				}
 				if (opcion == 1) {
@@ -75,8 +70,6 @@ public class Inicio {
 					var resultSet = ex.executeQuery("SELECT MAX(id) FROM Jugadores");
 					
 					var pt = con.prepareStatement("INSERT INTO Jugadores (id, Nombre, Equipo, Numero, Altura) values (?,?,?,?,?)");
-//					var pt = con.prepareStatement("SELECT MAX(id) FROM Jugadores");
-//					pt.executeQuery();
 	
 					pt.setInt(1, ID + resultSet.getInt(1)+1);
 					pt.setString(2, nombre);
@@ -85,6 +78,21 @@ public class Inicio {
 					pt.setDouble(5, altura);
 					
 					pt.executeUpdate();
+					
+					
+					//Archivos-----------------------------------------------------------------------------
+					BufferedWriter bw = new BufferedWriter(new FileWriter(ruta));
+					jugadores.add(new Jugador(ID+=1, nombre, equipo, numero, altura));
+					
+					for (int i = 0 ; i < jugadores.size(); i++ ) {
+						bw.write(jugadores.get(i).getID()+" "+jugadores.get(i).getNombre()+" "+jugadores.get(i).getEquipo()+" "+
+					jugadores.get(i).getNumero()+" "+jugadores.get(i).getAltura());
+						bw.newLine();
+					}
+					bw.close();
+
+					//-------------------------------------------------------------------------------------
+					
 					
 					JOptionPane.showMessageDialog(null, "El jugador ha sido añadido con exito!");
 					
@@ -102,8 +110,23 @@ public class Inicio {
 
 					}
 					
-					
 					JOptionPane.showMessageDialog(null,"Los jugadores son: \n" +Listado);
+					
+					//Archivos----------------------------------------------------------------------------------------
+					
+					try(BufferedReader br = new BufferedReader(new FileReader(ruta))) {
+						String lineaActual;
+						while((lineaActual  = br.readLine()) != null) {
+							System.out.println(lineaActual);
+						}
+						
+					} catch (IOException e) {
+						System.out.println("Ha ocurrido un error al leer el archivo");
+						e.printStackTrace();
+					}
+					
+					
+					//------------------------------------------------------------------------------------------------
 				
 				}
 				if (opcion == 3) {
@@ -118,13 +141,53 @@ public class Inicio {
 					
 					
 				}
+				if (opcion == 5) {
+					//-----------------------------------------------ultimo ---------------------------------
+					BufferedReader br = new BufferedReader(new FileReader(ruta));
+					
+					
+					
+					String lineaActual;
+					ArrayList<Jugador> personas = new ArrayList<>();
+					
+					String partes[];
+					int id;
+					String name;
+					String team;
+					int number;
+					double high;
+
+					
+					while((lineaActual  = br.readLine()) != null) {
+						
+						partes = lineaActual.split(" ");
+						
+						for (int i = 0; i <= partes.length; i++) {
+							id = Integer.parseInt(partes[i]);
+							name = partes[i+1];
+							team = partes[i+2];
+							number = Integer.parseInt(partes[i+3]);
+							high = Double.parseDouble(partes[i+4]);
+							
+							personas.add(new Jugador(id, name, team, number, high));
+							System.out.println(personas);
+							
+						}
+						
+						
+//						System.out.println(partes.toString());
+						
+					}
+					
+					//--------------------------------------------------------------------------------------
+				}
 				
 			}while(sennal);
 			
 		} catch (NumberFormatException e) {
 			JOptionPane.showMessageDialog(null, "No me has ingresado un numero");
+			e.printStackTrace();
 		}
-		
 
 	}
 
